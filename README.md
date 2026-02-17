@@ -4,6 +4,7 @@ A simple plotting library that makes it easy to plot data from vectors or `nalge
 
 ```rust
 use miniplot::MiniPlot;
+
 fn main() {
     let data: Vec<f64> = (0..1000).map(|i| (i as f64 / 50.).sin()).collect();
     MiniPlot::new("Sine Wave - Rust Vec")
@@ -16,6 +17,7 @@ fn main() {
 ```rust
 use miniplot::MiniPlot;
 use nalgebra::DVector;
+
 fn main() {
     let data: DVector<f64> = DVector::from_fn(1000, |i, _| (i as f64 / 50.).sin());
     MiniPlot::new("Sine Wave - nalgebra DVector")
@@ -28,6 +30,7 @@ fn main() {
 
 ```rust
 use miniplot::MiniPlot;
+
 fn main() {
     let data1: Vec<f64> = (0..1000).map(|i| (i as f64 / 50.).sin()).collect();
     let data2: Vec<f64> = (0..1000).map(|i| (i as f64 / 50.).cos()).collect();

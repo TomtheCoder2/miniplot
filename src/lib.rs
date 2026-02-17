@@ -228,6 +228,71 @@ impl MiniPlot {
         self
     }
 
+    /// Makes a line plot of the given data, where the x values are given by the x slice and the y values are given by the y slice. The line is colored differently for each call to this method.
+    /// # Arguments
+    /// * `x` - A slice of x values that is the same length as the length of the y slice. These values are used as the x values for the line.
+    /// * `y` - A slice of y values to be plotted. Must be convertible to a slice of f64 using the AsSliceF64 trait. The x values are given by the x slice.
+    /// # Example - normal rust vector
+    /// ```
+    /// use miniplot::MiniPlot;
+    /// let x: Vec<f64> = (0..1000).map(|i| i as f64 * 0.01).collect();
+    /// let y: Vec<f64> = x.iter().map(|&x| x.sin()).collect();
+    /// MiniPlot::new("Sine Wave - Rust Vec")
+    ///     .plot_xy(x, y)
+    ///     .show();
+    /// ```
+    pub fn plot_xy(mut self, x: impl AsSliceF64, y: impl AsSliceF64) -> Self {
+        let points: Vec<[f64; 2]> = x
+            .as_slice_f64()
+            .iter()
+            .zip(y.as_slice_f64())
+            .map(|(&x, &y)| [x, y])
+            .collect();
+        let color = self.get_color();
+        self.data.push(PlotData {
+            name: format!("Line {}", self.data.len()),
+            points,
+            color,
+            ..Default::default()
+        });
+        self
+    }
+
+    /// Makes a line plot of the given data, where the x values are given by the first element of each point and the y values are given by the second element of each point. The line is colored differently for each call to this method.
+    /// # Arguments
+    /// * `points` - An iterable of points to be plotted, where each point is an array of two f64 values, where the first value is the x value and the second value is the y value.
+    /// # Example
+    /// ```
+    /// use miniplot::MiniPlot;
+    /// let points: Vec<[f64; 2]> = (0..1000).map(|i| [i as f64 * 0.01, (i as f64 * 0.01).sin()]).collect();
+    /// MiniPlot::new("Sine Wave - Points")
+    ///     .plot_points(points)
+    ///     .show();
+    /// ```
+    pub fn plot_points(mut self, points: impl IntoIterator<Item = [f64; 2]>) -> Self {
+        let points: Vec<[f64; 2]> = points.into_iter().collect();
+        let color = self.get_color();
+        self.data.push(PlotData {
+            name: format!("Line {}", self.data.len()),
+            points,
+            color,
+            ..Default::default()
+        });
+        self
+    }
+
+    /// Displays the plot in a window. This method consumes the MiniPlot instance and should be called at the end of the plotting commands.
+    /// # Example
+    /// ```
+    /// use miniplot::MiniPlot;
+    /// let data: Vec<f64> = (0..1000).map(|i| (i as f64 / 50.).sin()).collect();
+    /// MiniPlot::new("Sine Wave")
+    ///     .plot(data)
+    ///     .xlabel("Time")
+    ///     .ylabel("Amplitude")
+    ///     .legend()
+    ///     .show();
+    /// ```
     pub fn show(self) {
         let options = eframe::NativeOptions::default();
         eframe::run_native(
