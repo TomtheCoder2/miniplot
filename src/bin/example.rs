@@ -12,6 +12,8 @@ fn main() {
 
     let line = Vector6::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
 
+    let rs_vector = vec![9., 5., 2., 4.5, 1., 3.];
+
     MiniPlot::new("Joint Angles")
         .xlabel("Time")
         .ylabel("Angle [rad]")
@@ -22,6 +24,9 @@ fn main() {
         .dashed()
         .plot(line)
         .name("Line")
+        .plot(rs_vector)
+        .name("Vector")
+        .color(miniplot::Color32::GREEN)
         .pointed()
         .legend()
         .show();

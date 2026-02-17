@@ -60,7 +60,7 @@ impl MiniPlot {
         self.color_index += 1;
         get_color(self.color_index)
     }
-    
+
     pub fn xlabel(mut self, label: &str) -> Self {
         self.options.xlabel = Some(label.to_string());
         self
@@ -180,6 +180,37 @@ impl MiniPlot {
         self
     }
 
+
+    /// Makes a line plot of the given data, where the x values are the indices of the y values. The line is colored differently for each call to this method.
+    /// # Arguments
+    /// * `line` - A slice of y values to be plotted. Must be convertible to a slice of f64 using the AsSliceF64 trait. The x values are automatically generated as the indices of the y values.
+    /// # Example - normal rust vector
+    /// ```
+    /// use miniplot::MiniPlot;
+    /// let data: Vec<f64> = (0..1000).map(|i| (i as f64 / 50.).sin()).collect();
+    /// MiniPlot::new("Sine Wave - Rust Vec")
+    ///     .plot(data)
+    ///     .show();
+    /// ```
+    /// # Example - nalgebra DVector
+    /// ```
+    /// use nalgebra::DVector;
+    /// use miniplot::MiniPlot;
+    /// let data: DVector<f64> = DVector::from_fn(1000, |i, _| (i as f64 / 50.).sin());
+    /// MiniPlot::new("Sine Wave - DVector")
+    ///     .plot(data)
+    ///     .show();
+    /// ```
+    /// # Example - nalgebra SVector
+    /// ```
+    /// use nalgebra::SVector;
+    /// use miniplot::MiniPlot;
+    /// const N: usize = 1000;
+    /// let data: SVector<f64, N> = SVector::from_fn(|i, _| (i as f64 / 50.).sin());
+    /// MiniPlot::new("Sine Wave - SVector")
+    ///     .plot(data)
+    ///     .show();
+    /// ```
     pub fn plot(mut self, line: impl AsSliceF64) -> Self {
         let points: Vec<[f64; 2]> = line
             .as_slice_f64()
