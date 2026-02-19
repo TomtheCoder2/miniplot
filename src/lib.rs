@@ -34,6 +34,7 @@ struct Options {
     pub legend: bool,
     xlabel: Option<String>,
     ylabel: Option<String>,
+    aspect_ratio: Option<f64>,
 }
 
 pub struct MiniPlot {
@@ -51,6 +52,7 @@ impl MiniPlot {
                 legend: false,
                 xlabel: None,
                 ylabel: None,
+                aspect_ratio: None,
             },
             color_index: 0,
         }
@@ -180,7 +182,6 @@ impl MiniPlot {
         self
     }
 
-
     /// Makes a line plot of the given data, where the x values are the indices of the y values. The line is colored differently for each call to this method.
     /// # Arguments
     /// * `line` - A slice of y values to be plotted. Must be convertible to a slice of f64 using the AsSliceF64 trait. The x values are automatically generated as the indices of the y values.
@@ -281,6 +282,18 @@ impl MiniPlot {
         self
     }
 
+    /// Sets the aspect ratio of the plot, which is the ratio of the width to the height. If not set, the aspect ratio is determined automatically by the plot. Setting a fixed aspect ratio can be useful for certain types of data, such as when plotting geometric shapes or when comparing two plots with different scales.
+    pub fn aspect_ratio(mut self, ratio: f64) -> Self {
+        self.options.aspect_ratio = Some(ratio);
+        self
+    }
+
+    /// Sets the aspect ratio of the plot to 1, which means that the x and y axes will have the same scale. This can be useful for plotting geometric shapes or when comparing two plots with different scales.
+    pub fn square_aspect_ratio(mut self) -> Self {
+        self.options.aspect_ratio = Some(1.0);
+        self
+    }
+
     /// Displays the plot in a window. This method consumes the MiniPlot instance and should be called at the end of the plotting commands.
     /// # Example
     /// ```
@@ -304,36 +317,38 @@ impl MiniPlot {
     }
 
     fn show_plot(&self, ui: &mut egui::Ui) {
-        Plot::new(&self.options.window_name)
+        let mut plot = Plot::new(&self.options.window_name)
             .x_axis_label(self.options.xlabel.clone().unwrap_or_default())
-            .y_axis_label(self.options.ylabel.clone().unwrap_or_default())
-            .legend(if self.options.legend {
-                egui_plot::Legend::default()
-            } else {
-                egui_plot::Legend::default()
-            })
-            .show(ui, |plot_ui| {
-                for data in &self.data {
+            .y_axis_label(self.options.ylabel.clone().unwrap_or_default());
+        if self.options.legend {
+            plot = plot.legend(egui_plot::Legend::default());
+        }
+        if let Some(aspect_ratio) = self.options.aspect_ratio {
+            plot = plot.view_aspect(aspect_ratio as f32);
+        }
+
+        plot.show(ui, |plot_ui| {
+            for data in &self.data {
+                let plot_points = PlotPoints::from_iter(data.points.clone().into_iter());
+                plot_ui.line(Line::new(&data.name, plot_points).color(data.color).style(
+                    if data.dashed {
+                        LineStyle::dashed_loose()
+                    } else if data.dotted {
+                        LineStyle::dotted_loose()
+                    } else {
+                        LineStyle::Solid
+                    },
+                ));
+                if data.pointed {
                     let plot_points = PlotPoints::from_iter(data.points.clone().into_iter());
-                    plot_ui.line(Line::new(&data.name, plot_points).color(data.color).style(
-                        if data.dashed {
-                            LineStyle::dashed_loose()
-                        } else if data.dotted {
-                            LineStyle::dotted_loose()
-                        } else {
-                            LineStyle::Solid
-                        },
-                    ));
-                    if data.pointed {
-                        let plot_points = PlotPoints::from_iter(data.points.clone().into_iter());
-                        plot_ui.points(
-                            egui_plot::Points::new(&data.name, plot_points)
-                                .color(data.color)
-                                .radius(4.),
-                        );
-                    }
+                    plot_ui.points(
+                        egui_plot::Points::new(&data.name, plot_points)
+                            .color(data.color)
+                            .radius(4.),
+                    );
                 }
-            });
+            }
+        });
     }
 }
 
